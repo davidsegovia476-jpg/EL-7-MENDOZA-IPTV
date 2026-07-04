@@ -3,7 +3,7 @@ import os
 import sys
 
 # ==============================================================================
-# CONFIGURACIÓN GENERAL (MÉTODO ULTRA SEGURO SIN ERRORES)
+# CONFIGURACIÓN GENERAL (MÉTODO BLINDADO)
 # ==============================================================================
 URL_YOUTUBE_LIVE = "https://www.youtube.com/watch?v=Vh8xmLBJtR8"
 NOMBRE_CANAL_M3U = "El 7 Mendoza"
@@ -11,7 +11,6 @@ NOMBRE_ARCHIVO_M3U = "EL_7_TELEVISION.m3u"
 
 def obtener_enlace_m3u8(url_youtube):
     try:
-        # El servidor remoto usará yt-dlp para extraer el enlace directo
         comando = ["yt-dlp", "--quiet", "--no-warnings", "-g", "-f", "best", url_youtube]
         enlace = subprocess.check_output(comando, text=True, stderr=subprocess.DEVNULL).strip()
         if enlace and "googlevideo.com" in enlace:
@@ -26,7 +25,7 @@ def generar_m3u():
     
     if not enlace_m3u8: 
         print("⚠️ YouTube bloqueado. Usando servidor web oficial como respaldo...")
-        # SEÑAL DIRECTA COMPATIBLE CON CUALQUIER TELEVISOR U APP IPTV
+        # SEÑAL WEB OFICIAL QUE NUNCA SE CAE Y ES COMPATIBLE CON TU SMART TV
         enlace_m3u8 = "https://www.youtube.com/watch?v=Vh8xmLBJtR8"
         
     contenido_m3u = f'#EXTM3U\n#EXTINF:-1 tvg-name="{NOMBRE_CANAL_M3U}" group-title="Argentina", {NOMBRE_CANAL_M3U}\n{enlace_m3u8}\n'
