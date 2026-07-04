@@ -26,7 +26,7 @@ def generar_m3u():
     if not enlace_m3u8: 
         print("⚠️ YouTube bloqueado. Usando servidor web oficial como respaldo...")
         # SEÑAL WEB OFICIAL QUE NUNCA SE CAE Y ES COMPATIBLE CON TU SMART TV
-        enlace_m3u8 = "https://www.youtube.com/watch?v=Vh8xmLBJtR8"
+        enlace_m3u8 = "https://bofstreaming.com"
         
     contenido_m3u = f'#EXTM3U\n#EXTINF:-1 tvg-name="{NOMBRE_CANAL_M3U}" group-title="Argentina", {NOMBRE_CANAL_M3U}\n{enlace_m3u8}\n'
     
