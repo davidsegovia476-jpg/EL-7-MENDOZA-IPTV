@@ -1,10 +1,10 @@
-name: Actualizar Lista IPTV Mendoza
+name: Actualizar Canal 7 por API
 
 on:
   schedule:
-    # Se ejecuta de forma automática una vez a la semana como mantenimiento básico
-    - cron: '0 0 * * 1'
-  workflow_dispatch: # Permite que lo actives tú manualmente cuando quieras con el botón
+    # Se ejecuta automáticamente cada 2 horas
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Activar manualmente mediante el botón en GitHub
 
 jobs:
   build:
@@ -19,20 +19,24 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Ejecutar creador de M3U
+    - name: Instalar dependencias requeridas
+      run: |
+        pip install requests
+
+    - name: Consultar API de El Siete y armar M3U
       run: python grabber.py
 
-    - name: Forzar guardado en el repositorio
+    - name: Guardar cambios de forma segura en GitHub
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # El comando touch crea un archivo en blanco si no existiera, solucionando el error fatal
+        # El comando touch previene el error 'fatal: pathspec' creando un archivo si falta
         touch canal7mendoza.m3u
         git add canal7mendoza.m3u
         
-        # Realiza el commit y sube los cambios de manera segura
-        git commit -m "Actualización de URL m3u8 nativa" || true
+        # Sube la actualización y termina en verde si no hay cambios bruscos
+        git commit -m "Renovación de enlace usando API de la web" || true
         git push || true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
