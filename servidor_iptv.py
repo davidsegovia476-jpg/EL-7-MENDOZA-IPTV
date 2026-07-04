@@ -1,49 +1,42 @@
 import subprocess
-import re
-import urllib.request
 import os
+import sys
 
-# ==============================================================================
-# EXTRACTOR DE SEÑAL REAL DESDE LA WEB OFICIAL DE EL SIETE MENDOZA
-# ==============================================================================
-URL_WEB_OFICIAL = "https://elsietetv.com.ar"
+URL_YOUTUBE_LIVE = "https://www.youtube.com/watch?v=Vh8xmLBJtR8"
 NOMBRE_CANAL_M3U = "El 7 Mendoza"
 NOMBRE_ARCHIVO_M3U = "EL_7_TELEVISION.m3u"
 
-def extraer_m3u8_oficial():
+def obtener_enlace_m3u8(url_youtube):
+    # Verificamos si las cookies secretas llegaron bien al servidor remoto
+    if os.path.exists("cookies.txt") and os.path.getsize("cookies.txt") > 0:
+        print("🍪 Cookies cargadas con éxito en el servidor de la nube.")
+        comando = ["yt-dlp", "--quiet", "--no-warnings", "--cookies", "cookies.txt", "-g", "-f", "best", url_youtube]
+    else:
+        print("⚠️ No se encontraron cookies. Intentando extracción limpia...")
+        comando = ["yt-dlp", "--quiet", "--no-warnings", "-g", "-f", "best", url_youtube]
+        
     try:
-        # El servidor simula ser un navegador común para que la web le dé acceso
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
-        req = urllib.request.Request(URL_WEB_OFICIAL, headers=headers)
-        
-        with urllib.request.urlopen(req, timeout=15) as response:
-            html = response.read().decode('utf-8')
-        
-        # Buscamos enlaces con formato .m3u8 ocultos en el código de la página
-        enlaces = re.findall(r'(https?://[^\s"\']+\.m3u8[^\s"\']*)', html)
-        
-        for url in enlaces:
-            # Filtramos para asegurarnos de que sea el servidor de video de Canal 7
-            if "canal7mza" in url or "bofstreaming" in url:
-                return url.replace('\\', '') # Limpiamos barras raras si las hay
-                
+        enlace = subprocess.check_output(comando, text=True, stderr=subprocess.DEVNULL).strip()
+        if enlace and "googlevideo.com" in enlace:
+            return enlace
     except Exception as e:
-        print(f"⚠️ Error al escanear la web oficial: {e}")
-    
-    # Si la web cambia, este es el enlace base directo que usa el canal hoy
-    return "https://bofstreaming.com"
+        print(f"❌ Error en yt-dlp: {e}")
+    return None
 
 def generar_m3u():
-    print("🤖 Escaneando la web oficial de El Siete Mendoza para buscar el .m3u8 activo...")
-    enlace_final = extraer_m3u8_oficial()
+    print("🤖 Buscando token de transmisión real de El Siete Mendoza...")
+    enlace_m3u8 = obtener_enlace_m3u8(URL_YOUTUBE_LIVE)
     
-    contenido_m3u = f'#EXTM3U\n#EXTINF:-1 tvg-name="{NOMBRE_CANAL_M3U}" group-title="Argentina", {NOMBRE_CANAL_M3U}\n{enlace_final}\n'
+    if not lenlace_m3u8 or "googlevideo.com" not in enlace_m3u8: 
+        print("⚠️ Google bloqueó el acceso sin cookies. Aplicando señal web como plan B temporal...")
+        enlace_m3u8 = "https://bofstreaming.com"
+        
+    contenido_m3u = f'#EXTM3U\n#EXTINF:-1 tvg-name="{NOMBRE_CANAL_M3U}" group-title="Argentina", {NOMBRE_CANAL_M3U}\n{enlace_m3u8}\n'
     
     with open(NOMBRE_ARCHIVO_M3U, "w", encoding="utf-8") as archivo:
         archivo.write(contenido_m3u)
     print(f"✅ ¡Archivo M3U creado con éxito!")
-    print(f"🔗 Enlace guardado: {enlace_final}")
+    print(f"🔗 URL Guardada: {enlace_m3u8[:50]}...")
 
 if __name__ == "__main__":
     generar_m3u()
-
