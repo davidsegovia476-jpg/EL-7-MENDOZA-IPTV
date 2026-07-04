@@ -2,9 +2,8 @@ name: Actualizar Canal 7 Fijo
 
 on:
   schedule:
-    # Se ejecuta de forma automática una vez al día para mantenimiento básico
-    - cron: '0 0 * * *'
-  workflow_dispatch: # Te activa el botón gris para correrlo cuando tú quieras
+    - cron: '0 0 * * *' # Se ejecuta de forma automática una vez al día
+  workflow_dispatch: # Activa el botón gris para correrlo manualmente
 
 jobs:
   build:
@@ -27,13 +26,12 @@ jobs:
     - name: Ejecutar script extractor
       run: python grabber.py
 
-    - name: Guardar cambios en el repositorio de forma segura
+    - name: Guardar cambios en el repositorio
       run: |
-        # Verificamos que Python ya creó el archivo antes de añadirlo
+        # Git busca el archivo solo DESPUÉS de que Python ya lo guardó en la carpeta
         if [ -f "canal7mendoza.m3u" ]; then
           git add canal7mendoza.m3u
-          # Hace el commit solo si hay algún cambio real, si no, salta en verde sin romperse
-          git diff-index --quiet HEAD || git commit -m "Lista M3U con ID fijo de YouTube actualizada"
+          git diff-index --quiet HEAD || git commit -m "Lista M3U con URL de YouTube corregida"
           git push
         else
           echo "El archivo canal7mendoza.m3u no se encontró. Saltando guardado."
