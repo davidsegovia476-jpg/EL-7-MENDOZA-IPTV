@@ -1,17 +1,35 @@
-    - name: Guardar cambios en el repositorio
+name: Actualizar Canal 7 M3U
+
+on:
+  schedule:
+    # Se ejecuta de manera automática una vez al día
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Permite ejecutar el script manualmente con un botón
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Clonar el repositorio
+      uses: actions/checkout@v4
+
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Ejecutar script extractor
+      run: python grabber.py
+
+    - name: Guardar cambios de forma segura en GitHub
       run: |
         git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@://github.com"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-        # Verificamos si el archivo realmente existe antes de agregarlo
-        if [ -f "canal7mendoza.m3u" ]; then
-          git add canal7mendoza.m3u
-          # Hacemos commit solo si hubo cambios reales en el enlace
-          git diff-index --quiet HEAD || git commit -m "Enlace M3U8 de transmisión actualizado"
-          git push
-        else
-          echo "El archivo canal7mendoza.m3u no se generó. Saltando guardado."
-        fi
+        # El comando '|| true' evita que el flujo se rompa si el archivo está vacío o no cambió
+        git add canal7mendoza.m3u || true
+        git diff-index --quiet HEAD || git commit -m "Lista M3U de Mendoza actualizada"
+        git push || true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
