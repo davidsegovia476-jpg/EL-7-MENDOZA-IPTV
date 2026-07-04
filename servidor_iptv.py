@@ -1,5 +1,4 @@
 import subprocess
-import time
 import os
 import sys
 
@@ -9,7 +8,7 @@ import sys
 URL_YOUTUBE_LIVE = "https://www.youtube.com/watch?v=Vh8xmLBJtR8"
 NOMBRE_CANAL_M3U = "El 7 Mendoza"
 NOMBRE_ARCHIVO_M3U = "EL_7_TELEVISION.m3u"
-TIEMPO_BUCLE = 14400 
+
 def obtener_enlace_m3u8(url_youtube):
     try:
         # El servidor remoto usará yt-dlp para extraer el enlace directo
@@ -27,7 +26,8 @@ def generar_m3u():
     
     if not enlace_m3u8: 
         print("⚠️ YouTube bloqueado. Usando servidor web oficial como respaldo...")
-        enlace_m3u8 = "https://www.youtube.com/watch?v=Vh8xmLBJtR8"
+        # SEÑAL DIRECTA COMPATIBLE CON CUALQUIER TELEVISOR U APP IPTV
+        enlace_m3u8 = "https://bofstreaming.com"
         
     contenido_m3u = f'#EXTM3U\n#EXTINF:-1 tvg-name="{NOMBRE_CANAL_M3U}" group-title="Argentina", {NOMBRE_CANAL_M3U}\n{enlace_m3u8}\n'
     
