@@ -1,47 +1,39 @@
-import os
-import requests
+name: Actualizar Canal 7 M3U
 
-# Configuración de rutas
-info_file = "youtube_channel_info.txt"
-output_file = "canal7mendoza.m3u"
+on:
+  schedule:
+    # Se ejecuta automáticamente cada 4 horas
+    - cron: '0 */4 * * *'
+  workflow_dispatch: # Te permite activarlo manualmente desde GitHub cuando quieras
 
-# Encabezados para evitar bloqueos de YouTube
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-}
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-m3u_content = "#EXTM3U\n"
+    steps:
+    - name: Clonar el repositorio
+      uses: actions/checkout@v4
 
-if os.path.exists(info_file):
-    with open(info_file, "r") as f:
-        url = f.read().strip()
-    
-    if url:
-        try:
-            # Buscar el stream en vivo en la página del canal
-            response = requests.get(url, headers=headers, timeout=15)
-            page_text = response.text
-            
-            # Buscar el token del directo (video_id)
-            if 'videoDetails' in page_text or 'liveStreamability' in page_text:
-                # Extraemos el ID del video usando una búsqueda simple de texto
-                start_idx = page_text.find('/watch?v=')
-                if start_idx != -1:
-                    video_id = page_text[start_idx+9 : start_idx+20]
-                    
-                    # Estructura del enlace M3U8 genérico que procesan los reproductores
-                    stream_url = f"https://www.youtube.com/watch?v={video_id}"
-                    
-                    # Si tu reproductor IPTV no soporta links directos de YouTube, 
-                    # puedes usar el formato de pasarela m3u8 (común en servidores de IPTV):
-                    # stream_url = f"https://vercel.app{stream_url}"
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x'
 
-                    m3u_content += f'#EXTINF:-1 tvg-name="Canal 7 Mendoza" tvg-logo="https://elsietetv.com.ar" group-title="Mendoza",Canal 7 Mendoza\n'
-                    m3u_content += f"{stream_url}\n"
-                    print(f"Token/ID extraído exitosamente: {video_id}")
-        except Exception as e:
-            print(f"Error al procesar el canal: {e}")
+    - name: Instalar dependencias
+      run: |
+        pip install requests
 
-# Guardar la lista M3U actualizada
-with open(output_file, "w", encoding="utf-8") as out:
-    out.write(m3u_content)
+    - name: Ejecutar script extractor
+      run: python grabber.py
+
+    - name: Guardar cambios en el repositorio
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@://github.com"
+        git add canal7mendoza.m3u
+        # Solo hace el commit si el enlace cambió de ID
+        git diff-index --quiet HEAD || git commit -m "URL de YouTube actualizada"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
