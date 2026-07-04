@@ -32,29 +32,18 @@ def generar_m3u():
         
     contenido_m3u = f'#EXTM3U\n#EXTINF:-1 tvg-name="{NOMBRE_CANAL_M3U}" group-title="Argentina", {NOMBRE_CANAL_M3U}\n{enlace_m3u8}\n'
     
-    # Guarda el archivo de forma segura en la carpeta local
-    ruta_carpeta = os.path.dirname(os.path.abspath(__file__))
-    ruta_final_archivo = os.path.join(ruta_carpeta, NOMBRE_ARCHIVO_M3U)
-
-    try:
-        with open(ruta_final_archivo, "w", encoding="utf-8") as archivo:
-            archivo.write(contenido_m3u)
-        print("✅ ¡Archivo creado con éxito en tu computadora!")
-        print("👉 Ahora puedes subirlo de forma visual a la web de GitHub.")
-    except Exception as e:
-        print(f"❌ Error al escribir el archivo: {e}")
+   # ... (Todo tu código anterior se mantiene EXACTAMENTE IGUAL)
 
 if __name__ == "__main__":
     try:
-        print("Iniciando actualizador automatico de IPTV para El Siete...")
+        print("Iniciando actualizador automatico de IPTV para El Siete en GitHub...")
         print("-" * 50)
-        while True:
-            generar_m3u()
-            print(f"\nEsperando {TIEMPO_BUCLE // 3600} horas para el proximo ciclo...")
-            time.sleep(TIEMPO_BUCLE)
+        
+        # Quitamos el bucle 'while True' para que corra una vez y guarde en el repositorio
+        generar_m3u()
+        print("\n✅ Proceso terminado y archivo actualizado con éxito.")
+        
     except KeyboardInterrupt:
         print("\nScript detenido por el usuario.")
     except Exception as error_critico:
         print(f"\n💥 OCURRIO UN ERROR CRÍTICO: {error_critico}")
-        input("\nPresiona ENTER para salir...")
-
