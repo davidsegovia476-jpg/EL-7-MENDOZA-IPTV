@@ -1,9 +1,10 @@
-name: Actualizar Canal 7 Fijo
+name: Actualizar Canal 7 Token Real
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Se ejecuta de forma automática una vez al día
-  workflow_dispatch: # Activa el botón gris para correrlo manualmente
+    # Se ejecuta automáticamente cada 3 horas para renovar el token antes de que venza
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # Botón gris para correrlo manualmente cuando quieras
 
 jobs:
   build:
@@ -26,15 +27,16 @@ jobs:
     - name: Ejecutar script extractor
       run: python grabber.py
 
-    - name: Guardar cambios en el repositorio
+    - name: Guardar cambios de forma segura en tu repositorio
       run: |
-        # Git busca el archivo solo DESPUÉS de que Python ya lo guardó en la carpeta
+        # Verificamos que el archivo fue creado por Python antes de intentar sumarlo
         if [ -f "canal7mendoza.m3u" ]; then
           git add canal7mendoza.m3u
-          git diff-index --quiet HEAD || git commit -m "Lista M3U con URL de YouTube corregida"
+          # Hace el commit sólo si el token cambió, evitando errores si es idéntico
+          git diff-index --quiet HEAD || git commit -m "Token .m3u8 de Google Video renovado"
           git push
         else
-          echo "El archivo canal7mendoza.m3u no se encontró. Saltando guardado."
+          echo "El archivo canal7mendoza.m3u no se generó. Saltando guardado."
         fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
