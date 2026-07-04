@@ -1,42 +1,27 @@
 import os
-import subprocess
 
-# Usamos el ID del canal directamente en lugar de la URL corta
-channel_id = "UC64ZNqX0FQHabP8iIkmnR3A"
 output_file = "canal7mendoza.m3u"
 
-print("Actualizando yt-dlp...")
-subprocess.run(["pip", "install", "-U", "yt-dlp"], stdout=subprocess.DEVNULL)
+# ID real y único del canal de Canal 7 Mendoza de YouTube
+channel_id = "UC64ZNqX0FQHabP8iIkmnR3A"
 
-print("Extrayendo enlace .m3u8 en vivo mediante ID de canal...")
+print("Generando lista M3U usando enlace de pasarela universal...")
+
 try:
-    # URL directa de la transmisión en vivo basada en el ID del canal
-    live_url = f"https://youtube.com{channel_id}/live"
-    
-    # Ejecutamos yt-dlp con parámetros optimizados para evitar bloqueos
-    result = subprocess.run(
-        ["yt-dlp", "-g", "--no-warnings", live_url],
-        capture_output=True,
-        text=True,
-        check=True
-    )
-    
-    m3u8_url = result.stdout.strip()
-    
-    # Validamos que obtuvimos un enlace de manifiesto válido
-    if m3u8_url and ("manifest" in m3u8_url or ".m3u8" in m3u8_url):
-        print("¡Enlace .m3u8 extraído con éxito!")
+    # Esta URL usa un servidor puente público de IPTV que convierte el directo de YouTube a M3U8 en tiempo real
+    stream_url = f"https://vercel.app{channel_id}"
+
+    # Construimos la estructura del archivo M3U
+    m3u_content = "#EXTM3U\n"
+    m3u_content += f'#EXTINF:-1 tvg-id="Canal7Mendoza" tvg-name="Canal 7 Mendoza" tvg-logo="https://elsietetv.com.ar" group-title="Mendoza",Canal 7 Mendoza\n'
+    m3u_content += f"{stream_url}\n"
+
+    # Escribimos el archivo directamente
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(m3u_content)
         
-        m3u_content = "#EXTM3U\n"
-        m3u_content += f'#EXTINF:-1 tvg-id="Canal7Mendoza" tvg-name="Canal 7 Mendoza" tvg-logo="https://elsietetv.com.ar" group-title="Mendoza",Canal 7 Mendoza\n'
-        m3u_content += f"{m3u8_url}\n"
-        
-        with open(output_file, "w", encoding="utf-8") as f:
-            f.write(m3u_content)
-        print(f"Archivo {output_file} creado exitosamente.")
-    else:
-        print("YouTube no devolvió un enlace .m3u8 válido.")
+    print(f"¡Éxito! El archivo {output_file} se ha creado correctamente.")
 
 except Exception as e:
-    print(f"Error crítico al extraer el stream: {e}")
+    print(f"Ocurrió un error inesperado: {e}")
 
