@@ -1,25 +1,45 @@
-import os
+name: Actualizar Canal 7 Token Real
 
-# El archivo que leerá tu aplicación IPTV
-output_file = "canal7mendoza.m3u"
+on:
+  schedule:
+    # Corre de forma automática cada 2 horas para renovar el token de YouTube
+    - cron: '0 */2 * * *'
+  workflow_dispatch: # Activa el botón gris para correrlo manualmente cuando quieras
 
-print("Escribiendo la lista M3U con la señal nativa permanente de Canal 7 Mendoza...")
+jobs:
+  build:
+    runs-on: ubuntu-latest
 
-try:
-    # URL directa de la red de distribución oficial. 
-    # Es un enlace .m3u8 puro, no tiene tokens de YouTube y no vence nunca.
-    stream_m3u8_url = "https://grupoamerica.com.ar"
+    steps:
+    - name: Clonar el repositorio
+      uses: actions/checkout@v4
 
-    # Construimos la estructura M3U exacta para tu reproductor IPTV
-    m3u_content = "#EXTM3U\n"
-    m3u_content += f'#EXTINF:-1 tvg-id="Canal7Mendoza" tvg-name="Canal 7 Mendoza" tvg-logo="https://elsietetv.com.ar" group-title="Mendoza",Canal 7 Mendoza\n'
-    m3u_content += f"{stream_m3u8_url}\n"
+    - name: Configurar entorno de Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
 
-    # Guardamos físicamente el archivo en la carpeta del repositorio
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(m3u_content)
-        
-    print(f"¡Éxito! El archivo {output_file} fue creado de forma segura.")
+    - name: Instalar dependencias
+      run: pip install requests
 
-except Exception as e:
-    print(f"Error al escribir el archivo: {e}")
+    - name: Configurar credenciales de Git primero
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@://github.com"
+
+    - name: Ejecutar script extractor
+      run: python grabber.py
+
+    - name: Guardar cambios de forma segura en GitHub
+      run: |
+        # Git busca el archivo solo DESPUÉS de que Python ya lo guardó en la carpeta
+        if [ -f "canal7mendoza.m3u" ]; then
+          git add canal7mendoza.m3u
+          git diff-index --quiet HEAD || git commit -m "Token .m3u8 de YouTube renovado"
+          git push
+        else
+          echo "El archivo canal7mendoza.m3u no se encontró. Saltando guardado."
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
