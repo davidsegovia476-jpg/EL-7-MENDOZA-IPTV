@@ -2,8 +2,9 @@ name: Actualizador Automatico IPTV
 
 on:
   schedule:
+    # Se despierta solo cada 3 horas exactas a renovar tu token real
     - cron: '0 */3 * * *'
-  workflow_dispatch:
+  workflow_dispatch: # Permite darle Play manual
 
 permissions:
   contents: write
@@ -20,19 +21,18 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Instalar el extractor yt-dlp
-        run: pip install yt-dlp
+      - name: Instalar el extractor yt-dlp actualizado
+        run: |
+          pip install --upgrade pip
+          pip install yt-dlp
 
-      - name: Crear archivo de cookies temporal
-        run: echo "${{ secrets.YT_COOKIES }}" > cookies.txt
-
-      - name: Ejecutar el script extractor
+      - name: Ejecutar el script extractor de token real
         run: python servidor_iptv.py
 
-      - name: Guardar y subir los cambios a GitHub
+      - name: Guardar y subir los cambios con el token real a GitHub
         run: |
-          git config --global user.name "GitHub Actions"
+          git config --global user.name "GitHub Actions Robot"
           git config --global user.email "actions@github.com"
           git add EL_7_TELEVISION.m3u
-          git commit -m "Token generado con credenciales autenticadas" || exit 0
+          git commit -m "Token real generado en automatico por el robot" || exit 0
           git push
