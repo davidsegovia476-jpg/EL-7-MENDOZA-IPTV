@@ -1,51 +1,60 @@
-import urllib.request
-import re
+import subprocess
+import time
 import os
+import sys
 
 # ==============================================================================
-# LÓGICA REFACTORIZADA: EXTRACTOR DIRECTO DE CÓDIGO FUENTE (ANTI-BLOQUEOS)
+# CONFIGURACIÓN GENERAL (MÉTODO ULTRA SEGURO SIN ERRORES)
 # ==============================================================================
 URL_YOUTUBE_LIVE = "https://www.youtube.com/watch?v=Vh8xmLBJtR8"
 NOMBRE_CANAL_M3U = "El 7 Mendoza"
 NOMBRE_ARCHIVO_M3U = "EL_7_TELEVISION.m3u"
+TIEMPO_BUCLE = 14400 
 
-def extraer_token_directo(url):
-    print("🤖 Escaneando el código fuente de YouTube para extraer el token activo...")
+def obtener_enlace_m3u8(url_youtube):
     try:
-        # Simulamos un navegador web real para que YouTube nos deje leer el código de la página
-        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
-        req = urllib.request.Request(url, headers=headers)
-        
-        with urllib.request.urlopen(req, timeout=15) as response:
-            html = response.read().decode('utf-8')
-            
-        # Buscamos la URL secreta .m3u8 de Google Video escondida dentro del código
-        enlaces_hls = re.findall(r'(https?://manifest\.googlevideo\.com/[^\s"\']+\.m3u8[^\s"\']*)', html)
-        
-        if enlaces_hls:
-            # Limpiamos barras invertidas raras que a veces mete YouTube en su código
-            token_limpio = enlaces_hls[0].replace(r'\/', '/').replace('\\', '')
-            print("🎯 ¡Espectacular! Se encontró un token fresco en el código fuente.")
-            return token_limpio
-            
-    except Exception as e:
-        print(f"⚠️ Error al leer el código fuente: {e}")
+        comando = [sys.executable, "-m", "yt_dlp", "--quiet", "--no-warnings", "-g", "-f", "best", url_youtube]
+        enlace = subprocess.check_output(comando, text=True, stderr=subprocess.DEVNULL).strip()
+        if enlace and "googlevideo.com" in enlace:
+            return enlace
+    except:
+        pass
     return None
 
 def generar_m3u():
-    enlace_final = extraer_token_directo(URL_YOUTUBE_LIVE)
+    print("\n--- Iniciando ciclo de renovacion del canal ---")
+    enlace_m3u8 = obtener_enlace_m3u8(URL_YOUTUBE_LIVE)
     
-    # Si todo falla, dejamos la señal del servidor oficial como salvavidas real
-    if not enlace_final or "googlevideo.com" not in enlace_final:
-        print("⚠️ No se pudo extraer del código fuente. Aplicando señal del servidor web oficial...")
-        enlace_final = "https://bofstreaming.com"
+    if not enlace_m3u8: 
+        print("⚠️ yt-dlp no pudo extraer el enlace oculto.")
+        print("Usando tu URL directa de YouTube como respaldo en la lista...")
+        enlace_m3u8 = URL_YOUTUBE_LIVE
         
-    contenido_m3u = f'#EXTM3U\n#EXTINF:-1 tvg-name="{NOMBRE_CANAL_M3U}" group-title="Argentina", {NOMBRE_CANAL_M3U}\n{enlace_final}\n'
+    contenido_m3u = f'#EXTM3U\n#EXTINF:-1 tvg-name="{NOMBRE_CANAL_M3U}" group-title="Argentina", {NOMBRE_CANAL_M3U}\n{enlace_m3u8}\n'
     
-    with open(NOMBRE_ARCHIVO_M3U, "w", encoding="utf-8") as archivo:
-        archivo.write(contenido_m3u)
-    print("✅ ¡Archivo M3U creado y guardado en internet con éxito!")
+    # Guarda el archivo de forma segura en la carpeta local
+    ruta_carpeta = os.path.dirname(os.path.abspath(__file__))
+    ruta_final_archivo = os.path.join(ruta_carpeta, NOMBRE_ARCHIVO_M3U)
+
+    try:
+        with open(ruta_final_archivo, "w", encoding="utf-8") as archivo:
+            archivo.write(contenido_m3u)
+        print("✅ ¡Archivo creado con éxito en tu computadora!")
+        print("👉 Ahora puedes subirlo de forma visual a la web de GitHub.")
+    except Exception as e:
+        print(f"❌ Error al escribir el archivo: {e}")
 
 if __name__ == "__main__":
-    generar_m3u()
+    try:
+        print("Iniciando actualizador automatico de IPTV para El Siete...")
+        print("-" * 50)
+        while True:
+            generar_m3u()
+            print(f"\nEsperando {TIEMPO_BUCLE // 3600} horas para el proximo ciclo...")
+            time.sleep(TIEMPO_BUCLE)
+    except KeyboardInterrupt:
+        print("\nScript detenido por el usuario.")
+    except Exception as error_critico:
+        print(f"\n💥 OCURRIO UN ERROR CRÍTICO: {error_critico}")
+        input("\nPresiona ENTER para salir...")
 
