@@ -1,9 +1,31 @@
+name: Actualizador Automatico IPTV
+
+on:
+  schedule:
+    - cron: '0 */4 * * *' # Se ejecuta solo cada 4 horas
+  workflow_dispatch: # Te deja probarlo con un botón manual
+
 jobs:
   actualizar-lista:
     runs-on: ubuntu-latest
-    timeout-minutes: 5 # 👈 Si se queda trabado en amarillo, GitHub lo frena a los 5 minutos
+    timeout-minutes: 3
 
     steps:
     - name: Clonar repositorio
-# ... (el resto del código del archivo cron.yml sigue exactamente igual)
+      uses: actions/checkout@v4
 
+    - name: Configurar Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Ejecutar script de Python
+      run: python EL_7_TELEVISION.py
+
+    - name: Guardar cambios en el repositorio
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add EL_7_TELEVISION.m3u
+        git commit -m "Lista IPTV actualizada" || echo "Sin cambios"
+        git push
