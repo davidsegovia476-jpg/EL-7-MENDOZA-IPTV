@@ -4,7 +4,7 @@ on:
   schedule:
     # Se ejecuta automáticamente cada 2 horas
     - cron: '0 */2 * * *'
-  workflow_dispatch: # Activar manualmente mediante el botón en GitHub
+  workflow_dispatch: # Botón para activarlo manualmente
 
 jobs:
   build:
@@ -23,6 +23,10 @@ jobs:
       run: |
         pip install requests
 
+    - name: Forzar creación previa del archivo
+      # Esto evita el error fatal: pathspec en caso de que falle la conexión a internet
+      run: touch canal7mendoza.m3u
+
     - name: Consultar API de El Siete y armar M3U
       run: python grabber.py
 
@@ -31,12 +35,9 @@ jobs:
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
         
-        # El comando touch previene el error 'fatal: pathspec' creando un archivo si falta
-        touch canal7mendoza.m3u
         git add canal7mendoza.m3u
-        
-        # Sube la actualización y termina en verde si no hay cambios bruscos
-        git commit -m "Renovación de enlace usando API de la web" || true
+        # Commitea solo si el link del video cambió de ID en la API
+        git diff-index --quiet HEAD || git commit -m "Renovación de enlace usando API de la web"
         git push || true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
