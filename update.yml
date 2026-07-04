@@ -1,35 +1,17 @@
-
-name: Actualizar Canal 7 M3U8
-
-on:
-  schedule:
-    # Se ejecuta automáticamente cada 3 horas para evitar que caduque el enlace
-    - cron: '0 */3 * * *'
-  workflow_dispatch: # Permite actualizar manualmente dándole a un botón en GitHub
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-    - name: Clonar el repositorio
-      uses: actions/checkout@v4
-
-    - name: Configurar Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Ejecutar script extractor (Genera el .m3u8)
-      run: python grabber.py
-
     - name: Guardar cambios en el repositorio
       run: |
         git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add canal7mendoza.m3u
-        # Forzamos la actualización siempre, ya que el link interno cambia de token continuamente
-        git commit -m "Enlace M3U8 de transmisión actualizado" || exit 0
-        git push
+        git config --global user.email "github-actions[bot]@://github.com"
+        
+        # Verificamos si el archivo realmente existe antes de agregarlo
+        if [ -f "canal7mendoza.m3u" ]; then
+          git add canal7mendoza.m3u
+          # Hacemos commit solo si hubo cambios reales en el enlace
+          git diff-index --quiet HEAD || git commit -m "Enlace M3U8 de transmisión actualizado"
+          git push
+        else
+          echo "El archivo canal7mendoza.m3u no se generó. Saltando guardado."
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
