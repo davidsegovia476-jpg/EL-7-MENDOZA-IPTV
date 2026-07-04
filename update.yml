@@ -1,10 +1,10 @@
-name: Actualizar Canal 7 por API
+name: Actualizar Canal 7 Fijo
 
 on:
   schedule:
-    # Se ejecuta automáticamente cada 2 horas
-    - cron: '0 */2 * * *'
-  workflow_dispatch: # Botón para activarlo manualmente
+    # Se ejecuta de forma automática una vez al día para mantenimiento básico
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Te activa el botón gris para correrlo cuando tú quieras
 
 jobs:
   build:
@@ -19,26 +19,25 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Instalar dependencias requeridas
-      run: |
-        pip install requests
-
-    - name: Forzar creación previa del archivo
-      # Esto evita el error fatal: pathspec en caso de que falle la conexión a internet
-      run: touch canal7mendoza.m3u
-
-    - name: Consultar API de El Siete y armar M3U
-      run: python grabber.py
-
-    - name: Guardar cambios de forma segura en GitHub
+    - name: Configurar credenciales de Git primero
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
-        
-        git add canal7mendoza.m3u
-        # Commitea solo si el link del video cambió de ID en la API
-        git diff-index --quiet HEAD || git commit -m "Renovación de enlace usando API de la web"
-        git push || true
+
+    - name: Ejecutar script extractor
+      run: python grabber.py
+
+    - name: Guardar cambios en el repositorio de forma segura
+      run: |
+        # Verificamos que Python ya creó el archivo antes de añadirlo
+        if [ -f "canal7mendoza.m3u" ]; then
+          git add canal7mendoza.m3u
+          # Hace el commit solo si hay algún cambio real, si no, salta en verde sin romperse
+          git diff-index --quiet HEAD || git commit -m "Lista M3U con ID fijo de YouTube actualizada"
+          git push
+        else
+          echo "El archivo canal7mendoza.m3u no se encontró. Saltando guardado."
+        fi
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
