@@ -34,3 +34,4 @@ jobs:
           git add EL_7_TELEVISION.m3u
           git commit -m "Token actualizado de forma automatica por el robot" || exit 0
           git push
+
