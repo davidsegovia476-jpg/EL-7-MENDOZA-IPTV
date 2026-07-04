@@ -1,10 +1,10 @@
-name: Actualizar Canal 7 Permanente
+name: Actualizar Lista IPTV Mendoza
 
 on:
   schedule:
-    # Se ejecuta de forma automática solo los lunes a la madrugada
+    # Se ejecuta de forma automática una vez a la semana como mantenimiento básico
     - cron: '0 0 * * 1'
-  workflow_dispatch: # Activar manualmente cuando desees
+  workflow_dispatch: # Permite que lo actives tú manualmente cuando quieras con el botón
 
 jobs:
   build:
@@ -14,7 +14,7 @@ jobs:
     - name: Clonar el repositorio
       uses: actions/checkout@v4
 
-    - name: Configurar Python
+    - name: Configurar entorno de Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
@@ -22,17 +22,17 @@ jobs:
     - name: Ejecutar creador de M3U
       run: python grabber.py
 
-    - name: Forzar subida del archivo a GitHub
+    - name: Forzar guardado en el repositorio
       run: |
         git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.email "github-actions[bot]@://github.com"
         
-        # El comando touch asegura que el archivo exista bajo cualquier circunstancia
+        # El comando touch crea un archivo en blanco si no existiera, solucionando el error fatal
         touch canal7mendoza.m3u
         git add canal7mendoza.m3u
         
-        # Sube el archivo de forma limpia y evita errores si no hay cambios bruscos
-        git commit -m "Actualización del stream oficial nativo de Mendoza" || true
+        # Realiza el commit y sube los cambios de manera segura
+        git commit -m "Actualización de URL m3u8 nativa" || true
         git push || true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
