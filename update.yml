@@ -2,9 +2,8 @@ name: Actualizar Canal 7 Token Real
 
 on:
   schedule:
-    # Se ejecuta automáticamente cada 3 horas para renovar el token antes de que venza
-    - cron: '0 */3 * * *'
-  workflow_dispatch: # Botón gris para correrlo manualmente cuando quieras
+    - cron: '0 0 * * *' # Corre de forma automática una vez al día para mantenimiento
+  workflow_dispatch: # Activa el botón gris para correrlo manualmente cuando quieras
 
 jobs:
   build:
@@ -14,30 +13,28 @@ jobs:
     - name: Clonar el repositorio
       uses: actions/checkout@v4
 
-    - name: Configurar entorno de Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-
-    - name: Configurar credenciales de Git primero
+    - name: Configurar credenciales de Git
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@://github.com"
 
-    - name: Ejecutar script extractor
-      run: python grabber.py
-
-    - name: Guardar cambios de forma segura en tu repositorio
+    - name: Crear archivo M3U con tu URL exacta de Google Video
       run: |
-        # Verificamos que el archivo fue creado por Python antes de intentar sumarlo
-        if [ -f "canal7mendoza.m3u" ]; then
-          git add canal7mendoza.m3u
-          # Hace el commit sólo si el token cambió, evitando errores si es idéntico
-          git diff-index --quiet HEAD || git commit -m "Token .m3u8 de Google Video renovado"
-          git push
-        else
-          echo "El archivo canal7mendoza.m3u no se generó. Saltando guardado."
-        fi
+        # Escribimos el formato IPTV y tu enlace de forma directa en la terminal de Linux
+        echo "#EXTM3U" > canal7mendoza.m3u
+        echo '#EXTINF:-1 tvg-id="Canal7Mendoza" tvg-name="Canal 7 Mendoza" tvg-logo="https://elsietetv.com.ar" group-title="Mendoza",Canal 7 Mendoza' >> canal7mendoza.m3u
+        echo "https://googlevideo.com' >> canal7mendoza.m3u
+        
+        echo "¡Archivo canal7mendoza.m3u creado con éxito!"
+
+    - name: Guardar cambios de forma obligatoria en GitHub
+      run: |
+        # Agregamos el archivo recién creado
+        git add canal7mendoza.m3u
+        
+        # Guardamos cambios. El comando '|| true' evita que el proceso falle si el link ya estaba guardado
+        git commit -m "Lista M3U actualizada con enlace directo de Google Video" || true
+        git push || true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
