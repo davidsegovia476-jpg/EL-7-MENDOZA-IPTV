@@ -1,10 +1,10 @@
-name: Automatizar Canal 7 M3U8
+name: Actualizar Canal 7 Permanente
 
 on:
   schedule:
-    # Se ejecuta automáticamente cada 2 horas
-    - cron: '0 */2 * * *'
-  workflow_dispatch: # Activación manual por botón
+    # Se ejecuta de forma automática solo los lunes a la madrugada
+    - cron: '0 0 * * 1'
+  workflow_dispatch: # Activar manualmente cuando desees
 
 jobs:
   build:
@@ -14,25 +14,25 @@ jobs:
     - name: Clonar el repositorio
       uses: actions/checkout@v4
 
-    - name: Configurar entorno de Python
+    - name: Configurar Python
       uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
-    - name: Extraer transmision de YouTube
+    - name: Ejecutar creador de M3U
       run: python grabber.py
 
-    - name: Publicar cambios de forma segura en GitHub
+    - name: Forzar subida del archivo a GitHub
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         
-        # Con el comando 'touch' nos aseguramos de que el archivo exista y Git no falle
+        # El comando touch asegura que el archivo exista bajo cualquier circunstancia
         touch canal7mendoza.m3u
         git add canal7mendoza.m3u
         
-        # '|| true' garantiza que si el link es idéntico, el flujo termine en verde sin romperse
-        git commit -m "Renovación automática del enlace streaming" || true
+        # Sube el archivo de forma limpia y evita errores si no hay cambios bruscos
+        git commit -m "Actualización del stream oficial nativo de Mendoza" || true
         git push || true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
